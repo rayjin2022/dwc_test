@@ -50,6 +50,7 @@ st.write(f"选中列全部不为空的文章占比: {all_columns_not_null_percen
 selected_columns_not_null = data[selected_columns].dropna()
 top_combinations = selected_columns_not_null.apply('+'.join, axis=1).value_counts().reset_index()
 top_combinations.columns = ['占比最高的4W1H叠加组合', '频次']
+top_combinations['占比'] = top_combinations['频次'] / len(data)
 
 # 去重
 top_combinations = top_combinations.drop_duplicates()
