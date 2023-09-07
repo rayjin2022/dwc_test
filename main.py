@@ -13,24 +13,33 @@ data = load_data()
 st.header('1. 4W1H击中率')
 
 # 创建多选框来选择要分析的列
-selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'How', 'When', 'Why'] , default=['Where', 'Who', 'How', 'When', 'Why'])
+selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'How', 'When', 'Why'],
+                                  default=['Where', 'Who', 'How', 'When', 'Why'])
+# 初始化DataFrame以存储每个选中列的占比最高的5个词语和频次占比
+top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
 
-# 初始化字典以存储每个列的占比最高的词语
-top_words = {}
-
-# 初始化字典以存储每个组合列的占比最高的4W1H叠加组合
-top_combinations = {}
-
-# 计算每个选中列不为空的占比
+# 计算每个选中列的占比最高的词语和频次占比
 for col in selected_columns:
     not_null_records = len(data[data[col].notnull()])
     total_records = len(data)
     percentage = not_null_records / total_records
     st.write(f"您选中的{col}不为空的占比: {percentage:.2%}")
-    # 计算每个列的占比最高的词语
-    top_word = data[col].value_counts().idxmax()
-    top_words[col] = top_word
-    st.write(f"{col}中占比最高的词语: {top_word}")
+
+    total_records = len(data)
+    percentage = not_null_records / total_records
+
+    # 计算每个列的占比最高的词语和频次占比
+    top_word_counts = data[col].value_counts()
+    top_words = top_word_counts.head(5)  # 获取占比最高的5个词语
+
+    # 创建每个选中列的DataFrame并附加到主DataFrame
+    top_words_df = pd.DataFrame({'类型': [col] * len(top_words), '词语': top_words.index,
+                                 '占比': (top_words / not_null_records).apply(lambda x: f"{x:.2%}")})
+    top_words_data = pd.concat([top_words_data, top_words_df])
+
+# 显示每个选中列的占比最高的5个词语和频次占比
+st.subheader('4W1H击中率占比最高词语:')
+st.write(top_words_data)
 
 # 计算选中列全部不为空的文章占比
 all_columns_not_null = data[data[selected_columns].notnull().all(axis=1)]
@@ -38,10 +47,18 @@ all_columns_not_null_percentage = len(all_columns_not_null) / len(data)
 st.write(f"选中列全部不为空的文章占比: {all_columns_not_null_percentage:.2%}")
 
 # 计算每个组合列的占比最高的4W1H叠加组合
-combination_columns = '+'.join(selected_columns)
-combination_data = data[selected_columns].fillna('').apply(lambda x: '+'.join(x), axis=1)
-top_combination = combination_data.value_counts().idxmax()
-st.write(f"选中列的占比最高的4W1H叠加组合: {top_combination}")
+selected_columns_not_null = data[selected_columns].dropna()
+top_combinations = selected_columns_not_null.apply('+'.join, axis=1).value_counts().reset_index()
+top_combinations.columns = ['占比最高的4W1H叠加组合', '频次']
+
+# 去重
+top_combinations = top_combinations.drop_duplicates()
+
+# 显示占比最高的4W1H叠加组合
+st.subheader('根据您选中的4W1H，占比最高的叠加组合:')
+st.write(top_combinations)
+
+
 
 
 # 第三个模块 - 根据筛选所选文章的占比
