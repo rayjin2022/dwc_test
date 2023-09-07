@@ -13,8 +13,8 @@ data = load_data()
 st.header('1. 4W1H击中率')
 
 # 创建多选框来选择要分析的列
-selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'How', 'When', 'Why'],
-                                  default=['Where', 'Who', 'How', 'When', 'Why'])
+selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who','With Whom','How', 'When', 'Why'],
+                                  default=['Where', 'Who','With Whom', 'How', 'When', 'Why'])
 # 初始化DataFrame以存储每个选中列的占比最高的5个词语和频次占比
 top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
 
@@ -67,6 +67,7 @@ st.header('2. 所选文章的占比')
 # 创建每个条件的下拉框
 selected_where_3 = st.multiselect('选择筛选的"Where"列', data['Where'].unique())
 selected_who_3 = st.multiselect('选择筛选的"Who"列', data['Who'].unique())
+selected_who_3 = st.multiselect('选择筛选的"With Whom"列', data['With Whom'].unique())
 selected_how_3 = st.multiselect('选择筛选的"How"列', data['How'].unique())
 selected_when_3 = st.multiselect('选择筛选的"When"列', data['When'].unique())
 selected_why_3 = st.multiselect('选择筛选的"Why"列', data['Why'].unique())
@@ -74,6 +75,7 @@ selected_why_3 = st.multiselect('选择筛选的"Why"列', data['Why'].unique())
 # 根据筛选器的条件过滤数据
 filtered_data_3 = data[data['Where'].isin(selected_where_3) &
                        data['Who'].isin(selected_who_3) &
+                       data['With Whom'].isin(selected_who_3) &
                        data['How'].isin(selected_how_3) &
                        data['When'].isin(selected_when_3) &
                        data['Why'].isin(selected_why_3)]
