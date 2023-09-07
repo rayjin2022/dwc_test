@@ -90,18 +90,18 @@ where_and_why_percentage = where_and_why / len(filtered_data)
 st.write(f"文章中Where和Why都不为空的占比: {where_and_why_percentage:.2%}")
 
 
-# 计算每个组合列的占比最高的4W1H叠加组合
+# 计算每个组合列的占比最高的5W1H叠加组合
 selected_columns = ['Where', 'Who', 'With Whom', 'How', 'When', 'Why']
-selected_columns_not_null = data[selected_columns].dropna()
+selected_columns_not_null = filtered_data[selected_columns].dropna()
 top_combinations = selected_columns_not_null.apply('+'.join, axis=1).value_counts().reset_index()
-top_combinations.columns = ['占比最高的4W1H叠加组合', '频次']
-top_combinations['占比'] = [str(round(i,2)) + '%' for i in top_combinations['频次'] / len(data) * 100]
+top_combinations.columns = ['占比最高的5W1H叠加组合', '频次']
+top_combinations['占比'] = [str(round(i,2)) + '%' for i in top_combinations['频次'] / len(filtered_data) * 100]
 
 # 去重
 top_combinations = top_combinations.drop_duplicates()
 
 # 显示占比最高的4W1H叠加组合
-st.subheader('根据您选中的4W1H，占比最高的叠加组合:')
+st.subheader('根据您选中的5W1H，占比最高的叠加组合:')
 st.write(top_combinations)
 
 
