@@ -64,11 +64,11 @@ st.write(top_combinations)
 # 第三个模块 - 根据筛选所选文章的占比
 st.header('2. 所选文章的占比')
 # 创建每个条件的下拉框
-selected_where_3 = st.multiselect('选择筛选的"Where"列', data['Where'].unique(), default=data['Where'].unique())
-selected_who_3 = st.multiselect('选择筛选的"Who"列', data['Who'].unique(), default=data['Who'].unique())
-selected_how_3 = st.multiselect('选择筛选的"How"列', data['How'].unique(), default=data['How'].unique())
-selected_when_3 = st.multiselect('选择筛选的"When"列', data['When'].unique(), default=data['When'].unique())
-selected_why_3 = st.multiselect('选择筛选的"Why"列', data['Why'].unique(), default=data['Why'].unique())
+selected_where_3 = st.multiselect('选择筛选的"Where"列', data['Where'].unique())
+selected_who_3 = st.multiselect('选择筛选的"Who"列', data['Who'].unique())
+selected_how_3 = st.multiselect('选择筛选的"How"列', data['How'].unique())
+selected_when_3 = st.multiselect('选择筛选的"When"列', data['When'].unique())
+selected_why_3 = st.multiselect('选择筛选的"Why"列', data['Why'].unique())
 
 # 根据筛选器的条件过滤数据
 filtered_data_3 = data[data['Where'].isin(selected_where_3) &
