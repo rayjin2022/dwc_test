@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import random
 
 # 读取Excel文件
 @st.cache
