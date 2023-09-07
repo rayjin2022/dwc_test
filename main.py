@@ -4,7 +4,7 @@ import pandas as pd
 # 读取Excel文件
 @st.cache
 def load_data():
-    data = pd.read_excel('data.xlsx')
+    data = pd.read_excel('跑步result_explode.xlsx')
     return data
 
 data = load_data()
