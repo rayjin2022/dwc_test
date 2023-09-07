@@ -15,17 +15,33 @@ st.header('1. 4W1H击中率')
 # 创建多选框来选择要分析的列
 selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'How', 'When', 'Why'] , default=['Where', 'Who', 'How', 'When', 'Why'])
 
+# 初始化字典以存储每个列的占比最高的词语
+top_words = {}
+
+# 初始化字典以存储每个组合列的占比最高的4W1H叠加组合
+top_combinations = {}
+
 # 计算每个选中列不为空的占比
 for col in selected_columns:
     not_null_records = len(data[data[col].notnull()])
     total_records = len(data)
     percentage = not_null_records / total_records
     st.write(f"您选中的{col}不为空的占比: {percentage:.2%}")
+    # 计算每个列的占比最高的词语
+    top_word = data[col].value_counts().idxmax()
+    top_words[col] = top_word
+    st.write(f"{col}中占比最高的词语: {top_word}")
 
 # 计算选中列全部不为空的文章占比
 all_columns_not_null = data[data[selected_columns].notnull().all(axis=1)]
 all_columns_not_null_percentage = len(all_columns_not_null) / len(data)
-st.write(f"根据您选中的列，全部不为空的文章占比: {all_columns_not_null_percentage:.2%}")
+st.write(f"选中列全部不为空的文章占比: {all_columns_not_null_percentage:.2%}")
+
+# 计算每个组合列的占比最高的4W1H叠加组合
+combination_columns = '+'.join(selected_columns)
+combination_data = data[selected_columns].fillna('').apply(lambda x: '+'.join(x), axis=1)
+top_combination = combination_data.value_counts().idxmax()
+st.write(f"选中列的占比最高的4W1H叠加组合: {top_combination}")
 
 
 # 第三个模块 - 根据筛选所选文章的占比
