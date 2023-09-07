@@ -117,12 +117,17 @@ selected_when = st.multiselect("选择When筛选条件", data['When'].dropna().u
 selected_why = st.multiselect("选择Why筛选条件", data['Why'].dropna().unique(), data['Why'].dropna().unique())
 
 # 根据筛选条件，统计“文章占比”并展示符合条件的context
-filtered_data = data[(data['Where'] == selected_where) &
-                     (data['Who'] == selected_who) &
-                     (data['How'] == selected_how) &
-                     (data['When'] == selected_when) &
-                     (data['Why'] == selected_why)]
-filtered_percentage = len(filtered_data) / total_records
+filtered_data = data[data['Where'].isin(selected_where)]
+
+filtered_data = data[(data['Where'].isin(selected_where)) &
+                     (data['Who'].isin(selected_who)) &
+                     (data['How'].isin(selected_how)) &
+                     (data['When'].isin(selected_when)) &
+                     (data['Why'].isin(selected_why))]
+filtered_percentage = len(filtered_data) / len(data)
+
+filtered_data.drop_duplicates(subset=["context"], inplace=True)
+filtered_data = filtered_data.reset_index(drop = True)
 
 st.subheader("符合筛选条件的文章占比")
 st.write(f"文章占比: {filtered_percentage:.2%}")
