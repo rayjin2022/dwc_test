@@ -102,24 +102,23 @@ top_combinations['占比'] = top_combinations['频次'].map(lambda x: f"{round(x
 top_combinations = top_combinations.drop_duplicates()
 st.dataframe(top_combinations)
 
+
+
+
+
 selected_combination = st.selectbox('选择你需要观察的组合', top_combinations['占比最高的5W1H叠加组合'].unique())
 
 if st.button('生成原文'):
-
     # 将叠加组合拆分为各个值
     values = selected_combination.split('+')
+    filtered_contexts = pd.DataFrame()
 
     # 使用条件筛选原文的context
-    filtered_context = filtered_data[
-        (filtered_data['Where'].isin(values)) &
-        (filtered_data['Who'].isin(values)) &
-        (filtered_data['With Whom'].isin(values)) &
-        (filtered_data['How'].isin(values)) &
-        (filtered_data['When'].isin(values)) &
-        (filtered_data['Why'].isin(values))
-    ]['context']
-    filtered_context_output = filtered_context.drop_duplicates()
-    #filtered_context_output = filtered_context
-    # 打印筛选结果
-    for texts in filtered_context_output['context']:
-        st.write(texts)
+    for column in selected_columns:
+        filtered_context = filtered_data[filtered_data[column].isin(values)]['context']
+
+        # 将匹配的context添加到结果DataFrame中
+        filtered_contexts = pd.concat([filtered_contexts, filtered_context], ignore_index=True)
+
+    filtered_context_output = filtered_contexts.drop_duplicates()
+    st.dataframe(filtered_context_output)
