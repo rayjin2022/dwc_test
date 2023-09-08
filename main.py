@@ -118,7 +118,7 @@ if st.button('生成原文'):
         (filtered_data['When'].isin(values)) &
         (filtered_data['Why'].isin(values))
     ]['context']
-    #filtered_context_output = filtered_context.drop_duplicates()
-    filtered_context_output = filtered_context
+    filtered_context_output = filtered_context.drop_duplicates()
+    #filtered_context_output = filtered_context
     # 打印筛选结果
     st.dataframe(filtered_context_output)
