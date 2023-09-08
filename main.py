@@ -121,4 +121,5 @@ if st.button('生成原文'):
     filtered_context_output = filtered_context.drop_duplicates()
     #filtered_context_output = filtered_context
     # 打印筛选结果
-    st.dataframe(filtered_context_output)
+    for texts in filtered_context_output['context']:
+        st.write(texts)
