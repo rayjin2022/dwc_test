@@ -4,8 +4,9 @@ import pandas as pd
 import streamlit as st
 
 # 创建一个下拉框
-场景 = st.selectbox("请选择一个场景", ["跑步", "徒步", '骑行', '感冒发烧', "肠胃不适", '健身'])
-st.write('注：肠胃不适和感冒发烧未衡量With Whom')
+with st.sidebar:
+    场景 = st.selectbox("请选择一个场景", ["跑步", "徒步", '骑行', '感冒发烧', "肠胃不适", '健身'])
+    st.write('注：肠胃不适和感冒发烧未衡量With Whom')
 
 # 读取Excel文件
 original_data = pd.read_excel(f'{场景}result_df.xlsx')
@@ -15,15 +16,16 @@ st.write(f'您所选的根场景为{场景}, 占比为{str(100 * round(len(origi
 data = pd.read_excel(f'{场景}result_explode.xlsx')
 st.header('1. top words example')
 
-# 创建多选框来选择要分析的列
-selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'With Whom', 'How', 'When', 'Why'], default=['Where', 'Who', 'With Whom', 'How', 'When', 'Why'])
-# 初始化DataFrame以存储每个选中列的占比最高的5个词语和频次占比
+
 top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
 
+with st.sidebar:
+    selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'With Whom', 'How', 'When', 'Why'],
+                                      default=['Where', 'Who', 'With Whom', 'How', 'When', 'Why'])
+    # 添加Where筛选框
+    selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(),data['Where'].dropna().unique())
 
-# 2. 添加Where筛选框
 
-selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(),data['Where'].dropna().unique())
 # 统计Where不为空且其他列不为空的文章占比
 filtered_data = data[data['Where'].isin(selected_where)]
 st.write(f"文章中Where不为空且其他列不为空的占比 (Where={selected_where}): {len(filtered_data) / len(data):.2%}")
@@ -52,11 +54,9 @@ all_columns_not_null = original_data[original_data[selected_columns].notnull().a
 all_columns_not_null_percentage = all_columns_not_null['context'].nunique() / data['context'].nunique()
 st.write(f"选中列全部不为空的文章占比: {all_columns_not_null_percentage:.2%}")
 
-# 计算每个组合列的占比最高的4W1H叠加组合
-selected_columns_not_null = data[selected_columns].dropna()
-top_combinations = selected_columns_not_null.apply('+'.join, axis=1).value_counts().reset_index()
-top_combinations.columns = ['占比最高的5W1H叠加组合', '频次']
-top_combinations['占比'] = [str(100*i/ len(original_data)) + '%' for i in top_combinations['频次']]
+
+
+
 
 
 st.header('2. 5W1H击中率')
@@ -92,46 +92,33 @@ where_and_why_percentage = where_and_why / len(filtered_data)
 st.write(f"文章中Where和Why都不为空的占比: {where_and_why_percentage:.2%}")
 
 
+# 去重
+
 # 计算每个组合列的占比最高的5W1H叠加组合
-selected_columns_not_null = filtered_data[selected_columns].dropna()
+selected_columns_not_null = data[selected_columns].dropna()
 top_combinations = selected_columns_not_null.apply('+'.join, axis=1).value_counts().reset_index()
 top_combinations.columns = ['占比最高的5W1H叠加组合', '频次']
-top_combinations['占比'] = [str(round(i,2)) + '%' for i in top_combinations['频次'] / len(filtered_data) * 100]
-
-# 去重
+top_combinations['占比'] = top_combinations['频次'].map(lambda x: f"{round(x / len(filtered_data) * 100, 2)}%")
 top_combinations = top_combinations.drop_duplicates()
+st.dataframe(top_combinations)
 
-# 显示占比最高的4W1H叠加组合
-st.subheader('根据您选中的5W1H，占比最高的叠加组合:')
-st.write(top_combinations)
+selected_combination = st.selectbox('选择你需要观察的组合', top_combinations['占比最高的5W1H叠加组合'].unique())
 
+if st.button('生成原文'):
 
+    # 将叠加组合拆分为各个值
+    values = selected_combination.split('+')
 
-'''
-st.header('3. 查看原文')
-# 创建筛选器
-selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(), default = '赛事')
-selected_who = st.multiselect("选择Who筛选条件", data['Who'].dropna().unique(), default = '选手')
-selected_how = st.multiselect("选择How筛选条件", data['How'].dropna().unique(), data['How'].dropna().unique())
-selected_when = st.multiselect("选择When筛选条件", data['When'].dropna().unique(), data['When'].dropna().unique())
-selected_why = st.multiselect("选择Why筛选条件", data['Why'].dropna().unique(), data['Why'].dropna().unique())
-
-# 根据筛选条件，统计“文章占比”并展示符合条件的context
-
-filtered_data = data[(data['Where'].isin(selected_where)) &
-                     (data['Who'].isin(selected_who)) &
-                     (data['How'].isin(selected_how)) &
-                     (data['When'].isin(selected_when)) &
-                     (data['Why'].isin(selected_why))]
-filtered_percentage = len(filtered_data) / len(data)
-
-filtered_data.drop_duplicates(subset=["context"], inplace=True)
-filtered_data = filtered_data.reset_index(drop = True)
-
-st.subheader("符合筛选条件的文章占比")
-st.write(f"文章占比: {filtered_percentage:.2%}")
-
-st.subheader("符合筛选条件的Context")
-st.write(filtered_data['context'])
-
-'''
+    # 使用条件筛选原文的context
+    filtered_context = filtered_data[
+        (filtered_data['Where'].isin(values)) &
+        (filtered_data['Who'].isin(values)) &
+        (filtered_data['With Whom'].isin(values)) &
+        (filtered_data['How'].isin(values)) &
+        (filtered_data['When'].isin(values)) &
+        (filtered_data['Why'].isin(values))
+    ]['context']
+    #filtered_context_output = filtered_context.drop_duplicates()
+    filtered_context_output = filtered_context
+    # 打印筛选结果
+    st.dataframe(filtered_context_output)
