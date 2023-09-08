@@ -5,6 +5,7 @@ import streamlit as st
 
 # 创建一个下拉框
 场景 = st.selectbox("请选择一个场景", ["跑步", "徒步", '骑行', '感冒发烧', "肠胃不适", '健身'])
+st.write('注：肠胃不适和感冒发烧未衡量With Whom')
 
 # 读取Excel文件
 original_data = pd.read_excel(f'{场景}result_df.xlsx')
@@ -92,7 +93,6 @@ st.write(f"文章中Where和Why都不为空的占比: {where_and_why_percentage:
 
 
 # 计算每个组合列的占比最高的5W1H叠加组合
-selected_columns = ['Where', 'Who', 'With Whom', 'How', 'When', 'Why']
 selected_columns_not_null = filtered_data[selected_columns].dropna()
 top_combinations = selected_columns_not_null.apply('+'.join, axis=1).value_counts().reset_index()
 top_combinations.columns = ['占比最高的5W1H叠加组合', '频次']
