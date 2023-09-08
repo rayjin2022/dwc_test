@@ -1,16 +1,18 @@
 import streamlit as st
 import pandas as pd
 
+import streamlit as st
+
+# 创建一个下拉框
+场景 = st.selectbox("请选择一个场景", ["跑步", "徒步", '骑行', '感冒发烧', "肠胃不适", '健身'])
+
 # 读取Excel文件
-@st.cache
-def load_data(path):
-    data = pd.read_excel(path)
-    return data
+original_data = pd.read_excel(f'{场景}result_df.xlsx')
 
-original_data = load_data(path = '跑步result_df.xlsx')
+st.write(f'您所选的根场景为{场景}, 占比为{str(100 * round(len(original_data) / 77512, 2))} %')
 
+data = pd.read_excel(f'{场景}result_explode.xlsx')
 st.header('1. top words example')
-
 
 # 创建多选框来选择要分析的列
 selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'With Whom', 'How', 'When', 'Why'], default=['Where', 'Who', 'With Whom', 'How', 'When', 'Why'])
@@ -20,7 +22,6 @@ top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
 
 # 2. 添加Where筛选框
 
-data = load_data(path = '跑步result_explode.xlsx')
 selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(),data['Where'].dropna().unique())
 # 统计Where不为空且其他列不为空的文章占比
 filtered_data = data[data['Where'].isin(selected_where)]
