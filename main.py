@@ -107,18 +107,16 @@ st.write(top_combinations)
 
 
 
-
-
+'''
 st.header('3. 查看原文')
 # 创建筛选器
-selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(),default = '赛事')
-selected_who = st.multiselect("选择Who筛选条件", data['Who'].dropna().unique(),default = '选手')
-selected_how = st.multiselect("选择How筛选条件", data['How'].dropna().unique(),data['How'].dropna().unique())
+selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(), default = '赛事')
+selected_who = st.multiselect("选择Who筛选条件", data['Who'].dropna().unique(), default = '选手')
+selected_how = st.multiselect("选择How筛选条件", data['How'].dropna().unique(), data['How'].dropna().unique())
 selected_when = st.multiselect("选择When筛选条件", data['When'].dropna().unique(), data['When'].dropna().unique())
 selected_why = st.multiselect("选择Why筛选条件", data['Why'].dropna().unique(), data['Why'].dropna().unique())
 
 # 根据筛选条件，统计“文章占比”并展示符合条件的context
-filtered_data = data[data['Where'].isin(selected_where)]
 
 filtered_data = data[(data['Where'].isin(selected_where)) &
                      (data['Who'].isin(selected_who)) &
@@ -135,3 +133,5 @@ st.write(f"文章占比: {filtered_percentage:.2%}")
 
 st.subheader("符合筛选条件的Context")
 st.write(filtered_data['context'])
+
+'''
