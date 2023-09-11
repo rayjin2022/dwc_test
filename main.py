@@ -11,11 +11,13 @@ with st.sidebar:
 # 读取Excel文件
 original_data = pd.read_excel(f'{场景}result_df.xlsx')
 original_data['Who'].fillna('未提及', inplace=True)
+#original_data['Who'].fillna('未提及', inplace=True)
 
 st.write(f'您所选的根场景为{场景}, 占比为{str(100 * round(len(original_data) / 77512, 2))} %')
 
 data = pd.read_excel(f'{场景}result_explode.xlsx')
 data['Who'].fillna('未提及', inplace=True)
+#data['Who'].fillna('未提及', inplace=True)
 
 st.header('1. top words example')
 
