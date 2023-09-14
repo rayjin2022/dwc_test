@@ -1,54 +1,91 @@
 import streamlit as st
 import pandas as pd
+import base64
 
-import streamlit as st
-
-# 创建一个下拉框
 with st.sidebar:
     场景 = st.selectbox("请选择一个场景", ["跑步", "徒步", '骑行', '感冒发烧', "肠胃不适", '健身'])
     st.write('注：肠胃不适和感冒发烧未衡量With Whom')
 
 # 读取Excel文件
 original_data = pd.read_excel(f'{场景}result_df.xlsx')
-original_data.fillna('未提及', inplace=True)
-#original_data['Who'].fillna('未提及', inplace=True)
+original_data['Who'].fillna('未提及', inplace=True)
 
-st.write(f'您所选的根场景为{场景}, 占比为{str(100 * round(len(original_data) / 77512, 2))} %')
+st.write(f'您所选的根场景为{场景}, 总文章数{len(original_data)}, 占比为{str(round(100 * len(original_data) / 60000,0))} %')
 
-data = pd.read_excel(f'{场景}result_explode.xlsx')
-data.fillna('未提及', inplace=True)
-#data['Who'].fillna('未提及', inplace=True)
-
-st.header('1. top words example')
+data = pd.read_excel(f'{场景}result_explode.xlsx', usecols=lambda x: 'Unnamed' not in x)
+data.drop_duplicates(subset=["context", 'Where', 'Who', 'With Whom', 'How', 'When', 'Why'], inplace=True)
+num_total_context = data.context.nunique()
 
 
-top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
-
+##########################################################################################
+st.header(f"{场景}场景最高的5W1H组合")
 with st.sidebar:
     selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'With Whom', 'How', 'When', 'Why'],
                                       default=['Where', 'Who', 'With Whom', 'How', 'When', 'Why'])
-    # 添加Where筛选框
-    selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(),data['Where'].dropna().unique())
+
+# 选择要分析的列数，2-6列
+num_selected_columns = len(selected_columns)
+
+if num_selected_columns < 1:
+    st.warning('请选择至少一列进行分析')
+else:
+    # 根据选择的列进行筛选
+    filtered_df = data[selected_columns + ['context']]
+    filtered_df = filtered_df.dropna()
+
+    # 创建一个新列，表示每行选中的组合
+    filtered_df['Combination'] = filtered_df[selected_columns].apply(lambda x: ' X '.join(x), axis=1)
+    grouped_df = filtered_df.groupby(selected_columns)['context'].nunique().reset_index()
+    grouped_df.columns = selected_columns + ['文章数']
+    grouped_df['占根场景比例'] = grouped_df['文章数'] / len(filtered_df)
+    grouped_df = grouped_df.sort_values(by='占根场景比例', ascending=False)
+
+    st.write('每个组合的文章数:')
+    st.write(grouped_df)
+
+    # 新增代码：添加下载DataFrame的选项
+    if st.button('下载DataFrame'):
+        csv = grouped_df.to_csv(index=True)
+        b64 = base64.b64encode(csv.encode()).decode()
+        href = f'<a href="data:file/csv;base64,{b64}" download="data.csv">点击这里下载DataFrame</a>'
+        st.markdown(href, unsafe_allow_html=True)
+##########################################################################################
 
 
+
+
+
+'''
+##########################################################################################
+st.header('选中5W1H高频词样例')
 # 统计Where不为空且其他列不为空的文章占比
+with st.sidebar:
+    selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(), data['Where'].dropna().unique())
+
+st.write('注意：根据Where的筛选条件，对应的筛选词语会发生变化')
+
+top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
 filtered_data = data[data['Where'].isin(selected_where)]
 st.write(f"文章中Where不为空且其他列不为空的占比 (Where={selected_where}): {len(filtered_data) / len(data):.2%}")
 
 # 计算每个选中列的占比最高的词语和频次占比
 for col in selected_columns:
-    not_null_records = len(filtered_data[filtered_data[col].notnull()])
-    total_records = len(filtered_data)
+    not_null_records = filtered_data[filtered_data[col].notnull()].context.nunique()
+    total_records = num_total_context
     percentage = not_null_records / total_records
 
-    # 计算每个列的占比最高的词语和频次占比
-    top_word_counts = filtered_data[col].value_counts()
-    top_words = top_word_counts.head(5)  # 获取占比最高的5个词语
+    # 计算每个列的占比最高的词语和对应唯一上下文数量
+    top_words_counts = filtered_data.groupby(col)['context'].nunique()
+    top_words_counts = top_words_counts.reset_index()
+    top_words_counts = top_words_counts.rename(columns={'context': '唯一上下文数量'})
+    top_words_counts = top_words_counts.sort_values(by='唯一上下文数量', ascending=False).head(5)
 
     # 创建每个选中列的DataFrame并附加到主DataFrame
-    top_words_df = pd.DataFrame({'类型': [col] * len(top_words), '词语': top_words.index,
-                                 '占比': (top_words / total_records).apply(lambda x: f"{x:.0%}")})
-    top_words_data = pd.concat([top_words_data, top_words_df])
+    top_words_counts['类型'] = col
+    top_words_counts['占比'] = top_words_counts['唯一上下文数量'] / total_records
+    top_words_counts['占比'] = top_words_counts['占比'].apply(lambda x: f"{x:.0%}")
+
+    top_words_data = pd.concat([top_words_data, top_words_counts])
 
 # 显示每个选中列的占比最高的5个词语和频次占比
 st.subheader('5W1H击中率占比最高词语:')
@@ -63,17 +100,16 @@ st.write(f"选中列全部不为空的文章占比: {all_columns_not_null_percen
 
 
 
-
 st.header('2. 5W1H击中率')
 
 # 统计Where不为空的文章占比（不考虑其他列）
-not_null_where_without_filter = len(data[data['Where'].notnull()])
-where_percentage_without_filter = not_null_where_without_filter / len(data)
+not_null_where_without_filter = len(original_data[original_data['Where'].notnull()])
+where_percentage_without_filter = not_null_where_without_filter / len(original_data)
 st.write(f"文章中Where不为空的占比 (无筛选): {where_percentage_without_filter:.2%}")
 
 # 3. 满足Where,不为空，且Who不为空的文章占比
-where_and_who = len(filtered_data[(filtered_data['Where'].notnull()) & (filtered_data['Who'].notnull())])
-where_and_who_percentage = where_and_who / len(filtered_data)
+where_and_who = len(original_data[(original_data['Where'].notnull()) & (original_data['Who'].notnull())])
+where_and_who_percentage = where_and_who / len(original_data)
 st.write(f"文章中Where和Who都不为空的占比: {where_and_who_percentage:.2%}")
 # 满足Where,不为空，且With Whom不为空的文章占比
 where_and_ww = len(filtered_data[(filtered_data['Where'].notnull()) & (filtered_data['With Whom'].notnull())])
@@ -107,10 +143,6 @@ top_combinations['占比'] = top_combinations['频次'].map(lambda x: f"{round(x
 top_combinations = top_combinations.drop_duplicates()
 st.dataframe(top_combinations)
 
-
-
-
-
 selected_combination = st.selectbox('选择你需要观察的组合', top_combinations['占比最高的5W1H叠加组合'].unique())
 
 if st.button('生成原文'):
@@ -127,3 +159,5 @@ if st.button('生成原文'):
 
     filtered_context_output = filtered_contexts.drop_duplicates()
     st.dataframe(filtered_context_output)
+
+'''

@@ -10,17 +10,15 @@ with st.sidebar:
 
 # 读取Excel文件
 original_data = pd.read_excel(f'{场景}result_df.xlsx')
-original_data.fillna('未提及', inplace=True)
-#original_data['Who'].fillna('未提及', inplace=True)
+original_data['Who'].fillna('未提及', inplace=True)
 
 st.write(f'您所选的根场景为{场景}, 占比为{str(100 * round(len(original_data) / 77512, 2))} %')
 
 data = pd.read_excel(f'{场景}result_explode.xlsx')
-data.fillna('未提及', inplace=True)
-#data['Who'].fillna('未提及', inplace=True)
+
+data
 
 st.header('1. top words example')
-
 
 top_words_data = pd.DataFrame(columns=['类型', '词语', '占比'])
 
@@ -28,12 +26,12 @@ with st.sidebar:
     selected_columns = st.multiselect('选择要分析的列', ['Where', 'Who', 'With Whom', 'How', 'When', 'Why'],
                                       default=['Where', 'Who', 'With Whom', 'How', 'When', 'Why'])
     # 添加Where筛选框
-    selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(),data['Where'].dropna().unique())
-
+    selected_where = st.multiselect("选择Where筛选条件", data['Where'].dropna().unique(), data['Where'].dropna().unique())
 
 # 统计Where不为空且其他列不为空的文章占比
 filtered_data = data[data['Where'].isin(selected_where)]
 st.write(f"文章中Where不为空且其他列不为空的占比 (Where={selected_where}): {len(filtered_data) / len(data):.2%}")
+
 
 # 计算每个选中列的占比最高的词语和频次占比
 for col in selected_columns:
@@ -43,7 +41,7 @@ for col in selected_columns:
 
     # 计算每个列的占比最高的词语和频次占比
     top_word_counts = filtered_data[col].value_counts()
-    top_words = top_word_counts.head(5)  # 获取占比最高的5个词语
+    top_words = top_word_counts.head(3)  # 获取占比最高的3个词语
 
     # 创建每个选中列的DataFrame并附加到主DataFrame
     top_words_df = pd.DataFrame({'类型': [col] * len(top_words), '词语': top_words.index,

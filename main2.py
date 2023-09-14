@@ -10,14 +10,12 @@ with st.sidebar:
 
 # 读取Excel文件
 original_data = pd.read_excel(f'{场景}result_df.xlsx')
-original_data.fillna('未提及', inplace=True)
-#original_data['Who'].fillna('未提及', inplace=True)
+original_data['Who'].fillna('未提及', inplace=True)
 
 st.write(f'您所选的根场景为{场景}, 占比为{str(100 * round(len(original_data) / 77512, 2))} %')
 
 data = pd.read_excel(f'{场景}result_explode.xlsx')
-data.fillna('未提及', inplace=True)
-#data['Who'].fillna('未提及', inplace=True)
+data['Who'].fillna('未提及', inplace=True)
 
 st.header('1. top words example')
 
@@ -106,9 +104,6 @@ top_combinations.columns = ['占比最高的5W1H叠加组合', '频次']
 top_combinations['占比'] = top_combinations['频次'].map(lambda x: f"{round(x / len(filtered_data) * 100, 2)}%")
 top_combinations = top_combinations.drop_duplicates()
 st.dataframe(top_combinations)
-
-
-
 
 
 selected_combination = st.selectbox('选择你需要观察的组合', top_combinations['占比最高的5W1H叠加组合'].unique())
