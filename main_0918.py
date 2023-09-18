@@ -89,7 +89,7 @@ else:
     if selected_combination:
         filtered_articles = original_article[original_article['5W1H_Combination'] == selected_combination].reset_index(drop = True)
         filtered_articles.drop_duplicates(subset=["context", '5W1H_Combination'], inplace=True)
-        st.dataframe(filtered_articles[['context','5W1H_Combination'] + selected_columns].sample(frac = 1, random_state = 19950628))
+        st.dataframe(filtered_articles[['context','5W1H_Combination'] + selected_columns].sample(frac = 1, random_state = 19950628).reset_index(drop = True))
 
         # 新增代码：添加下载DataFrame的选项
         if st.button('下载原文数据表'):
