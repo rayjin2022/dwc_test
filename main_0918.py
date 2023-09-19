@@ -93,8 +93,8 @@ else:
 
         # 新增代码：添加下载DataFrame的选项
         if st.button('下载原文数据表'):
-            csv = filtered_articles.to_csv(index=True)
-            b64 = base64.b64encode(csv.encode()).decode()
+            csv = filtered_articles.to_csv(index=True, encoding='utf-8-sig')  # 使用utf-8-sig确保UTF-8编码并避免BOM
+            b64 = base64.b64encode(csv.encode('utf-8')).decode()  # 指定字符集为UTF-8
             href = f'<a href="data:file/csv;base64,{b64}" download="data.csv">点击这里继续下载</a>'
             st.markdown(href, unsafe_allow_html=True)
 
