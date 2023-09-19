@@ -20,7 +20,6 @@ num_total_context = data.context.nunique()
 
 
 
-
 ##########################################################################################
 st.write('\n')
 st.write('\n')
@@ -44,9 +43,9 @@ else:
     filtered_df = filtered_df.dropna()
 
     # 创建一个新列，表示每行选中的组合
-    filtered_df['Combination'] = filtered_df[selected_columns].apply(lambda x: ' X '.join(x), axis=1)
-    grouped_df = filtered_df.groupby(selected_columns)['context'].nunique().reset_index()
-    grouped_df.columns = selected_columns + ['文章数']
+    filtered_df['5W1H_Combination'] = filtered_df[selected_columns].apply(lambda x: '+'.join(x), axis=1)
+    grouped_df = filtered_df.groupby('5W1H_Combination')['context'].nunique().reset_index()
+    grouped_df.columns = ['5W1H_Combination', '文章数']
     grouped_df['占根场景比例'] = grouped_df['文章数'] / num_total_context
     grouped_df = grouped_df.sort_values(by='占根场景比例', ascending=False).reset_index(drop = True)
 
@@ -55,12 +54,11 @@ else:
 
     # 新增代码：添加下载DataFrame的选项
     if st.button('下载数据表'):
-        csv = grouped_df.to_csv(index=True)
-        b64 = base64.b64encode(csv.encode()).decode()
+        csv = grouped_df.to_csv(index=True, encoding='utf-8-sig')  # 使用utf-8-sig确保UTF-8编码并避免BOM
+        b64 = base64.b64encode(csv.encode('utf-8')).decode()  # 指定字符集为UTF-8
         href = f'<a href="data:file/csv;base64,{b64}" download="data.csv">点击这里继续下载</a>'
         st.markdown(href, unsafe_allow_html=True)
 ##########################################################################################
-
 
 
 
@@ -80,11 +78,19 @@ else:
     # 根据选择的列进行筛选
     filtered_df = data[selected_columns + ['context']]
     filtered_df = filtered_df[filtered_df['Where'].isin(selected_where)]
+    filtered_df = filtered_df.dropna()
 
-    original_article['5W1H_Combination'] = filtered_df[selected_columns].astype(str).apply(lambda x: '+'.join(x), axis=1)
+    # 创建一个新列，表示每行选中的组合
+    filtered_df['5W1H_Combination'] = filtered_df[selected_columns].apply(lambda x: '+'.join(x), axis=1)
+    grouped_df = filtered_df.groupby('5W1H_Combination')['context'].nunique().reset_index()
+    grouped_df.columns = ['5W1H_Combination', '文章数']
+    grouped_df['占根场景比例'] = grouped_df['文章数'] / num_total_context
+    grouped_df = grouped_df.sort_values(by='占根场景比例', ascending=False).reset_index(drop = True)
+
+    original_article = filtered_df.copy()
     original_article.dropna(inplace = True)
 
-    selected_combination = st.selectbox('选择5W1H的组合', original_article['5W1H_Combination'].unique(), 0)
+    selected_combination = st.selectbox('选择5W1H的组合', grouped_df['5W1H_Combination'].unique(), 0)
 
     if selected_combination:
         filtered_articles = original_article[original_article['5W1H_Combination'] == selected_combination].reset_index(drop = True)
@@ -99,5 +105,3 @@ else:
             st.markdown(href, unsafe_allow_html=True)
 
 ##########################################################################################
-
-
